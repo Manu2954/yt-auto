@@ -1,0 +1,10 @@
+requests
+pandas
+openpyxl
+python-dotenv
+elevenlabs
+moviepy
+yt-dlp
+youtube-search-python
+praw
+pysrt
