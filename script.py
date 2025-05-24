@@ -2,9 +2,18 @@ import requests
 import pandas as pd
 from dotenv import load_dotenv
 import os
-from video import get_video_urls
+from video import get_video_urls, download_and_trim_videos
+from voice import generate_voiceover
+
+
 
 load_dotenv()
+
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+VOICE_ID = os.getenv("VOICE_ID")
+
 
 def fetch_reddit_trends(niche):
     url = f"https://www.reddit.com/r/{niche}/hot.json?limit=2"
@@ -14,8 +23,6 @@ def fetch_reddit_trends(niche):
     posts = response.json()["data"]["children"]
     return [post["data"]["title"] for post in posts]
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 
 def generate_openrouter(prompt):
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -42,8 +49,6 @@ def save_trends_with_scripts(trend, niche):
     data = []
 
     script = generate_script(trend, niche)
-    # keywords = get_keywords_for_scenes(script, OPENROUTER_API_KEY)
-    # prompt_key = f"hey divide this into scenes and give a keyword to each scene and  also estimate how much time does each scene takes when readout for an ai text to speech generator and return only keywords with estimated time in order, without headings and numberings, separate them using commas, also estimate how much time does each scene takes when readout '{script}'"
     keywords = parse_keywords(script)
     
     # Add current date and time for each entry
@@ -84,7 +89,12 @@ def main():
     save_trends_with_scripts(reddit_trends, niche)
     keywords = parse_keywords(script)
     print(keywords)
-    print(get_video_urls(keywords, PEXELS_API_KEY))
+    video_urls = get_video_urls(keywords, PEXELS_API_KEY)
+    print(video_urls)
+    # script_audio = generate_voiceover('audio',script, ELEVENLABS_API_KEY, VOICE_ID)
+    clips = download_and_trim_videos(video_urls, keywords)
+    print(clips)
+
     
 if __name__ == "__main__":
     main()
